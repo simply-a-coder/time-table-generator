@@ -1,0 +1,11 @@
+Course Code,Course Name,Instructor,Day,Time,Classroom,Students
+TCS 401,Computer science,Siddhant thapliyal,Monday,08:00 - 10:00,CR-201,3
+TCS 402,Automata,Ajay shukla,Monday,08:00 - 10:00,CR-201,3
+TCS 403,Microprocessor,Saurabh Aggarwal,Wednesday,10:00 - 11:00,CR-201,3
+TCS 404,Deep learning,Amit gupta,Tuesday,10:00 - 12:00,CR-201,3
+TCS 405,Database Systems,Priya Sharma,Thursday,09:00 - 11:00,CR-202,4
+TCS 406,Software Engineering,Rahul Kumar,Wednesday,14:00 - 16:00,CR-203,5
+TCS 407,Computer Networks,Neha Verma,Friday,11:00 - 13:00,CR-201,3
+TCS 408,Operating Systems,Rajesh Patel,Tuesday,14:00 - 16:00,CR-204,4
+TCS 409,Web Development,Anita Singh,Thursday,13:00 - 15:00,CR-202,5
+TCS 410,Data Structures,Vikram Mehta,Friday,09:00 - 11:00,CR-203,4

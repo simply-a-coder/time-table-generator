@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Scheduler - University Timetable Scheduler{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Timetable Scheduler</h2>
+        <p class="lead">Run the graph coloring algorithm to generate an optimal timetable</p>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Scheduler Controls</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('run_scheduler') }}" method="post">
+                    <div class="alert alert-info">
+                        <p>
+                            <strong>Before running the scheduler:</strong>
+                            <ul>
+                                <li>Make sure you have added all courses</li>
+                                <li>Make sure you have added all instructors and assigned them to courses</li>
+                                <li>Make sure you have added all classrooms with correct capacities</li>
+                                <li>Make sure you have added all time slots</li>
+                                <li>Make sure you have enrolled students in courses</li>
+                            </ul>
+                        </p>
+                    </div>
+                    
+                    <p class="mb-3">Press the button below to run the scheduler. This process may take some time depending on the number of courses and conflicts.</p>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary">Run Scheduler</button>
+                        <a href="{{ url_for('timetable') }}" class="btn btn-outline-secondary">View Current Timetable</a>
+                    </div>
+                </form>
+                
+                <div class="mt-3">
+                    <a href="{{ url_for('view_conflicts') }}" class="btn btn-outline-warning w-100">
+                        <i class="fas fa-exclamation-triangle me-2"></i> View Course Conflicts
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Reset Schedule</h5>
+            </div>
+            <div class="card-body">
+                <p>If you need to clear the current schedule and start fresh, you can reset all course assignments.</p>
+                <p class="text-danger"><strong>Warning:</strong> This action cannot be undone. All course time slot and classroom assignments will be removed.</p>
+                
+                <form action="{{ url_for('reset_schedule') }}" method="post">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to reset the schedule? This action cannot be undone.')">Reset Schedule</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Algorithm Information</h5>
+            </div>
+            <div class="card-body">
+                <p>The scheduler uses a greedy graph coloring algorithm with the following steps:</p>
+                <ol>
+                    <li>Build a conflict graph where courses are nodes and conflicts are edges</li>
+                    <li>Sort courses by the number of conflicts (most constrained first)</li>
+                    <li>For each course, find an available time slot (color) that satisfies all constraints</li>
+                    <li>Assign the course to the time slot and an appropriate classroom</li>
+                </ol>
+                <p>The algorithm prioritizes minimizing conflicts while optimizing room usage.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

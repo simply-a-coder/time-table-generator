@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Conflict Graph - University Timetable Scheduler{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Course Conflict Graph</h2>
+        <p class="lead">Visualization of course conflicts</p>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Graph Visualization</h5>
+            </div>
+            <div class="card-body">
+                <p>This graph represents conflicts between courses:</p>
+                <ul>
+                    <li><strong>Nodes (circles):</strong> Courses</li>
+                    <li><strong>Gray edges:</strong> Student conflicts (courses with shared students)</li>
+                    <li><strong>Red edges:</strong> Instructor conflicts (courses taught by the same instructor)</li>
+                </ul>
+                
+                <div class="text-center">
+                    <img src="data:image/png;base64,{{ graph_image }}" class="img-fluid" alt="Course Conflict Graph">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Graph Theory in Scheduling</h5>
+            </div>
+            <div class="card-body">
+                <p>The graph coloring algorithm uses the following approach:</p>
+                <ol>
+                    <li>Each course is represented as a node in the graph</li>
+                    <li>Conflicts between courses are represented as edges</li>
+                    <li>The scheduler assigns "colors" (time slots) to each node</li>
+                    <li>No two adjacent nodes (courses with conflicts) can have the same color</li>
+                    <li>The goal is to use the minimum number of colors (time slots) while satisfying all constraints</li>
+                </ol>
+                
+                <p>The scheduler prioritizes courses with the most conflicts (highest degree nodes) to improve efficiency.</p>
+                
+                <div class="mt-3 text-center">
+                    <a href="{{ url_for('scheduler_view') }}" class="btn btn-primary">Run Scheduler</a>
+                    <a href="{{ url_for('timetable') }}" class="btn btn-outline-primary">View Timetable</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

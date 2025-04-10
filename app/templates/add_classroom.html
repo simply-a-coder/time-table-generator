@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Add Classroom - University Timetable Scheduler{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Add Classroom</h2>
+        <p class="lead">Add a new teaching space to the system</p>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-gradient text-white">
+                <h5 class="mb-0">Classroom Information</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('add_classroom') }}" method="post">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Classroom Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                        <div class="form-text">Enter a unique name or number for the classroom (e.g., "Room 101", "Lecture Hall A")</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="capacity" class="form-label">Capacity</label>
+                        <input type="number" class="form-control" id="capacity" name="capacity" min="1" required>
+                        <div class="form-text">Enter the maximum number of students this classroom can accommodate</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary">Add Classroom</button>
+                        <a href="{{ url_for('classrooms') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-gradient text-white">
+                <h5 class="mb-0">Instructions</h5>
+            </div>
+            <div class="card-body">
+                <p>Fill in the classroom details to add a new teaching space to the system.</p>
+                <ul>
+                    <li><strong>Classroom Name:</strong> A unique identifier for the room (e.g., building and room number).</li>
+                    <li><strong>Capacity:</strong> The maximum number of students the room can accommodate.</li>
+                </ul>
+                <p>The scheduler will assign courses to classrooms based on enrollment and capacity constraints.</p>
+                <div class="alert alert-info mt-3">
+                    <p class="mb-0"><strong>Note:</strong> Make sure your classroom capacity is sufficient for the student enrollment in courses to avoid scheduling conflicts.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

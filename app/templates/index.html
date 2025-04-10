@@ -1,0 +1,869 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - University Timetable Scheduler{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Custom dashboard styles */
+    .stat-card {
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-small);
+        transition: var(--transition-bounce);
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+        height: 100%;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-8px) rotate(1deg);
+        box-shadow: var(--shadow-medium);
+    }
+    
+    .action-link {
+        transition: var(--transition-bounce);
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        color: var(--dark-color);
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .action-link::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(to bottom, var(--primary-color), var(--secondary-color));
+        transition: var(--transition-normal);
+        z-index: -1;
+    }
+    
+    .action-link:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-medium);
+        color: var(--dark-color);
+    }
+    
+    .action-link:hover::before {
+        width: 100%;
+        opacity: 0.1;
+    }
+    
+    .icon-bg {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        margin-right: 16px;
+        font-size: 1.25rem;
+        background: linear-gradient(135deg, rgba(142, 68, 173, 0.1), rgba(52, 152, 219, 0.1));
+    }
+    
+    .process-step {
+        position: relative;
+        padding-left: 3rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .process-step::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 0;
+        width: 2px;
+        height: 100%;
+        background: linear-gradient(to bottom, var(--primary-color), rgba(142, 68, 173, 0.1));
+    }
+    
+    .process-step:last-child::before {
+        height: 50%;
+    }
+    
+    .step-number {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        box-shadow: var(--shadow-small);
+    }
+    
+    .activity-item {
+        position: relative;
+        transition: var(--transition-normal);
+        border-bottom: 1px solid var(--gray-light);
+    }
+    
+    .activity-item:hover {
+        background-color: rgba(142, 68, 173, 0.05);
+        transform: translateX(5px);
+    }
+    
+    .activity-icon {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        margin-right: 1rem;
+    }
+    
+    .parallax-card {
+        transition: transform 0.5s ease;
+        transform-style: preserve-3d;
+        will-change: transform;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container fade-in">
+    <!-- Welcome Header -->
+    <div class="row mb-4 animate-on-scroll fade-in-up">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-5 mb-2">Timetable Dashboard</h1>
+                    <p class="text-muted">Welcome to the University Timetable Scheduler</p>
+                </div>
+                <div>
+                    <form action="{{ url_for('run_scheduler') }}" method="POST">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-magic me-2"></i> Generate Timetable
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stat-card bg-gradient text-white p-4 parallax-card">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="counter-animation" data-target="{{ stats.courses }}">{{ stats.courses }}</h3>
+                        <p class="mb-0 text-white-50">Courses</p>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-book fa-2x"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="{{ url_for('courses') }}" class="text-white-50 small">
+                        <span>View Courses</span>
+                        <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stat-card bg-gradient-secondary text-white p-4 parallax-card">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="counter-animation" data-target="{{ stats.instructors }}">{{ stats.instructors }}</h3>
+                        <p class="mb-0 text-white-50">Instructors</p>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-chalkboard-teacher fa-2x"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="{{ url_for('instructors') }}" class="text-white-50 small">
+                        <span>View Instructors</span>
+                        <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stat-card p-4 parallax-card" style="background: linear-gradient(135deg, #f1c40f, #e67e22); color: white;">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="counter-animation" data-target="{{ stats.students }}">{{ stats.students }}</h3>
+                        <p class="mb-0 text-white-50">Students</p>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-user-graduate fa-2x"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="{{ url_for('students') }}" class="text-white-50 small">
+                        <span>View Students</span>
+                        <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stat-card p-4 parallax-card" style="background: linear-gradient(135deg, #2ecc71, #27ae60); color: white;">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="counter-animation" data-target="{{ stats.classrooms }}">{{ stats.classrooms }}</h3>
+                        <p class="mb-0 text-white-50">Classrooms</p>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-door-open fa-2x"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="{{ url_for('classrooms') }}" class="text-white-50 small">
+                        <span>View Classrooms</span>
+                        <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="row mb-4">
+        <!-- Quick Actions and Scheduling -->
+        <div class="col-lg-8 mb-4 mb-lg-0">
+            <div class="card h-100 animate-on-scroll fade-in-left">
+                <div class="card-header d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0">Resource Management</h5>
+                    <div class="btn-group">
+                        <a href="{{ url_for('courses') }}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="View All Resources">
+                            <i class="fas fa-th-large"></i>
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="grid-view-btn" data-bs-toggle="tooltip" title="Grid View">
+                            <i class="fas fa-th"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="list-view-btn" data-bs-toggle="tooltip" title="List View">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- List View -->
+                    <div id="list-view" class="mb-4">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Resource</th>
+                                        <th>Count</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="icon-bg me-2">
+                                                    <i class="fas fa-book text-primary"></i>
+                                                </div>
+                                                <div>Courses</div>
+                                            </div>
+                                        </td>
+                                        <td>{{ stats.courses }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ url_for('courses') }}" class="btn btn-outline-primary">View</a>
+                                                <a href="{{ url_for('add_course') }}" class="btn btn-outline-success">Add</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="icon-bg me-2">
+                                                    <i class="fas fa-chalkboard-teacher text-info"></i>
+                                                </div>
+                                                <div>Instructors</div>
+                                            </div>
+                                        </td>
+                                        <td>{{ stats.instructors }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ url_for('instructors') }}" class="btn btn-outline-primary">View</a>
+                                                <a href="{{ url_for('add_instructor') }}" class="btn btn-outline-success">Add</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="icon-bg me-2">
+                                                    <i class="fas fa-user-graduate text-warning"></i>
+                                                </div>
+                                                <div>Students</div>
+                                            </div>
+                                        </td>
+                                        <td>{{ stats.students }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ url_for('students') }}" class="btn btn-outline-primary">View</a>
+                                                <a href="{{ url_for('add_student') }}" class="btn btn-outline-success">Add</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="icon-bg me-2">
+                                                    <i class="fas fa-door-open text-success"></i>
+                                                </div>
+                                                <div>Classrooms</div>
+                                            </div>
+                                        </td>
+                                        <td>{{ stats.classrooms }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ url_for('classrooms') }}" class="btn btn-outline-primary">View</a>
+                                                <a href="{{ url_for('add_classroom') }}" class="btn btn-outline-success">Add</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="icon-bg me-2">
+                                                    <i class="fas fa-clock text-danger"></i>
+                                                </div>
+                                                <div>Time Slots</div>
+                                            </div>
+                                        </td>
+                                        <td>N/A</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ url_for('timeslots') }}" class="btn btn-outline-primary">View</a>
+                                                <a href="{{ url_for('add_timeslot') }}" class="btn btn-outline-success">Add</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Grid View -->
+                    <div id="grid-view" class="row g-4" style="display: none;">
+                        <div class="col-md-6 mb-4">
+                            <a href="{{ url_for('courses') }}" class="action-link p-4 h-100">
+                                <div class="icon-bg">
+                                    <i class="fas fa-book text-primary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Courses</h6>
+                                    <p class="text-muted mb-0 small">Manage course catalog</p>
+                                    <div class="d-flex align-items-center mt-2">
+                                        <div class="progress flex-grow-1" style="height: 5px;">
+                                            <div class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
+                                        </div>
+                                        <span class="ms-2 small">{{ stats.courses }}</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <a href="{{ url_for('instructors') }}" class="action-link p-4 h-100">
+                                <div class="icon-bg">
+                                    <i class="fas fa-chalkboard-teacher text-info"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Instructors</h6>
+                                    <p class="text-muted mb-0 small">Manage teaching staff</p>
+                                    <div class="d-flex align-items-center mt-2">
+                                        <div class="progress flex-grow-1" style="height: 5px;">
+                                            <div class="progress-bar bg-info" role="progressbar" style="width: 100%"></div>
+                                        </div>
+                                        <span class="ms-2 small">{{ stats.instructors }}</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <a href="{{ url_for('students') }}" class="action-link p-4 h-100">
+                                <div class="icon-bg">
+                                    <i class="fas fa-user-graduate text-warning"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Students</h6>
+                                    <p class="text-muted mb-0 small">Manage student enrollments</p>
+                                    <div class="d-flex align-items-center mt-2">
+                                        <div class="progress flex-grow-1" style="height: 5px;">
+                                            <div class="progress-bar bg-warning" role="progressbar" style="width: 100%"></div>
+                                        </div>
+                                        <span class="ms-2 small">{{ stats.students }}</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <a href="{{ url_for('classrooms') }}" class="action-link p-4 h-100">
+                                <div class="icon-bg">
+                                    <i class="fas fa-door-open text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Classrooms</h6>
+                                    <p class="text-muted mb-0 small">Manage available rooms</p>
+                                    <div class="d-flex align-items-center mt-2">
+                                        <div class="progress flex-grow-1" style="height: 5px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+                                        </div>
+                                        <span class="ms-2 small">{{ stats.classrooms }}</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <a href="{{ url_for('timeslots') }}" class="action-link p-4 h-100">
+                                <div class="icon-bg">
+                                    <i class="fas fa-clock text-danger"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Time Slots</h6>
+                                    <p class="text-muted mb-0 small">Manage available time slots</p>
+                                    <div class="d-flex align-items-center mt-2">
+                                        <div class="progress flex-grow-1" style="height: 5px;">
+                                            <div class="progress-bar bg-danger" role="progressbar" style="width: 100%"></div>
+                                        </div>
+                                        <span class="ms-2 small">N/A</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h5>Quick Actions</h5>
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-4">
+                                <a href="{{ url_for('timetable') }}" class="btn btn-outline-primary w-100 py-3">
+                                    <i class="fas fa-calendar-alt mb-2 d-block" style="font-size: 24px;"></i>
+                                    View Timetable
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{{ url_for('view_graph') }}" class="btn btn-outline-primary w-100 py-3">
+                                    <i class="fas fa-project-diagram mb-2 d-block" style="font-size: 24px;"></i>
+                                    View Graph
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{{ url_for('timeslots') }}" class="btn btn-outline-primary w-100 py-3">
+                                    <i class="fas fa-clock mb-2 d-block" style="font-size: 24px;"></i>
+                                    Manage Time Slots
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Update section -->
+                    <div class="mt-4">
+                        <h5>Quick Update</h5>
+                        <div class="card card-body bg-light">
+                            <div class="accordion" id="quickUpdateAccordion">
+                                <!-- Course Update -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#courseUpdate">
+                                            <i class="fas fa-book me-2 text-primary"></i> Update Course
+                                        </button>
+                                    </h2>
+                                    <div id="courseUpdate" class="accordion-collapse collapse" data-bs-parent="#quickUpdateAccordion">
+                                        <div class="accordion-body">
+                                            <form action="{{ url_for('quick_update') }}" method="post">
+                                                <input type="hidden" name="update_type" value="course">
+                                                <div class="mb-3">
+                                                    <label for="course_id" class="form-label">Select Course</label>
+                                                    <select class="form-select" id="course_id" name="item_id" required>
+                                                        <option value="">-- Select a course --</option>
+                                                        {% for course in courses_for_upload %}
+                                                        <option value="{{ course.id }}">{{ course.code }}: {{ course.name }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="course_name" class="form-label">New Course Name</label>
+                                                    <input type="text" class="form-control" id="course_name" name="name">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="course_instructor" class="form-label">Instructor</label>
+                                                    <select class="form-select" id="course_instructor" name="instructor_id">
+                                                        <option value="">-- No change --</option>
+                                                        {% for instructor in instructors_for_upload %}
+                                                        <option value="{{ instructor.id }}">{{ instructor.name }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <div class="text-end">
+                                                    <button type="submit" class="btn btn-primary">Update Course</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Instructor Update -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#instructorUpdate">
+                                            <i class="fas fa-chalkboard-teacher me-2 text-info"></i> Update Instructor
+                                        </button>
+                                    </h2>
+                                    <div id="instructorUpdate" class="accordion-collapse collapse" data-bs-parent="#quickUpdateAccordion">
+                                        <div class="accordion-body">
+                                            <form action="{{ url_for('quick_update') }}" method="post">
+                                                <input type="hidden" name="update_type" value="instructor">
+                                                <div class="mb-3">
+                                                    <label for="instructor_id" class="form-label">Select Instructor</label>
+                                                    <select class="form-select" id="instructor_id" name="item_id" required>
+                                                        <option value="">-- Select an instructor --</option>
+                                                        {% for instructor in instructors_for_upload %}
+                                                        <option value="{{ instructor.id }}">{{ instructor.name }} ({{ instructor.email }})</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="instructor_name" class="form-label">New Name</label>
+                                                    <input type="text" class="form-control" id="instructor_name" name="name">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="instructor_email" class="form-label">New Email</label>
+                                                    <input type="email" class="form-control" id="instructor_email" name="email">
+                                                </div>
+                                                <div class="text-end">
+                                                    <button type="submit" class="btn btn-primary">Update Instructor</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Classroom Update -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#classroomUpdate">
+                                            <i class="fas fa-door-open me-2 text-success"></i> Update Classroom
+                                        </button>
+                                    </h2>
+                                    <div id="classroomUpdate" class="accordion-collapse collapse" data-bs-parent="#quickUpdateAccordion">
+                                        <div class="accordion-body">
+                                            <form action="{{ url_for('quick_update') }}" method="post">
+                                                <input type="hidden" name="update_type" value="classroom">
+                                                <div class="mb-3">
+                                                    <label for="classroom_id" class="form-label">Select Classroom</label>
+                                                    <select class="form-select" id="classroom_id" name="item_id" required>
+                                                        <option value="">-- Select a classroom --</option>
+                                                        {% for classroom in classrooms_for_upload %}
+                                                        <option value="{{ classroom.id }}">{{ classroom.name }} (Capacity: {{ classroom.capacity }})</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="classroom_name" class="form-label">New Name</label>
+                                                    <input type="text" class="form-control" id="classroom_name" name="name">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="classroom_capacity" class="form-label">New Capacity</label>
+                                                    <input type="number" class="form-control" id="classroom_capacity" name="capacity" min="1">
+                                                </div>
+                                                <div class="text-end">
+                                                    <button type="submit" class="btn btn-primary">Update Classroom</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Time Slot Update -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#timeslotUpdate">
+                                            <i class="fas fa-clock me-2 text-danger"></i> Update Time Slot
+                                        </button>
+                                    </h2>
+                                    <div id="timeslotUpdate" class="accordion-collapse collapse" data-bs-parent="#quickUpdateAccordion">
+                                        <div class="accordion-body">
+                                            <form action="{{ url_for('quick_update') }}" method="post">
+                                                <input type="hidden" name="update_type" value="timeslot">
+                                                <div class="mb-3">
+                                                    <label for="timeslot_id" class="form-label">Select Time Slot</label>
+                                                    <select class="form-select" id="timeslot_id" name="item_id" required>
+                                                        <option value="">-- Select a time slot --</option>
+                                                        {% for timeslot in timeslots_for_upload %}
+                                                        <option value="{{ timeslot.id }}">{{ timeslot.day }} {{ timeslot.start_time }} - {{ timeslot.end_time }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="timeslot_day" class="form-label">New Day</label>
+                                                    <select class="form-select" id="timeslot_day" name="day">
+                                                        <option value="">-- No change --</option>
+                                                        <option value="Monday">Monday</option>
+                                                        <option value="Tuesday">Tuesday</option>
+                                                        <option value="Wednesday">Wednesday</option>
+                                                        <option value="Thursday">Thursday</option>
+                                                        <option value="Friday">Friday</option>
+                                                    </select>
+                                                </div>
+                                                <div class="row mb-3">
+                                                    <div class="col">
+                                                        <label for="timeslot_start_time" class="form-label">New Start Time</label>
+                                                        <input type="time" class="form-control" id="timeslot_start_time" name="start_time">
+                                                    </div>
+                                                    <div class="col">
+                                                        <label for="timeslot_end_time" class="form-label">New End Time</label>
+                                                        <input type="time" class="form-control" id="timeslot_end_time" name="end_time">
+                                                    </div>
+                                                </div>
+                                                <div class="text-end">
+                                                    <button type="submit" class="btn btn-primary">Update Time Slot</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Activities -->
+        <div class="col-lg-4">
+            <div class="card h-100 animate-on-scroll fade-in-right">
+                <div class="card-header d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0">Recent Activities</h5>
+                    <a href="#" class="btn btn-sm btn-outline-primary rounded-pill px-3">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    {% if activities %}
+                        <div class="list-group list-group-flush">
+                            {% for activity in activities %}
+                                <div class="activity-item p-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="activity-icon">
+                                            <i class="{{ activity.icon }}"></i>
+                                        </div>
+                                        <div>
+                                            <div class="mb-1">{{ activity.description }}</div>
+                                            <div class="d-flex align-items-center">
+                                                <small class="text-muted me-2">{{ activity.time }}</small>
+                                                <span class="badge rounded-pill bg-primary">{{ activity.user }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center p-4">
+                            <img src="https://cdn.dribbble.com/users/255512/screenshots/2215917/no_activity.gif" alt="No activities" style="max-width: 200px;" class="mb-3">
+                            <p class="text-muted">No recent activities found</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="small text-muted">Scheduled courses: {{ stats.scheduled_courses }}/{{ stats.courses }}</div>
+                        <div class="progress" style="height: 6px; width: 100px;">
+                            <div class="progress-bar" role="progressbar" 
+                                style="width: {% if stats.courses > 0 %}{{ (stats.scheduled_courses / stats.courses) * 100 }}{% else %}0{% endif %}%;" 
+                                aria-valuenow="{{ stats.scheduled_courses }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="{{ stats.courses }}"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- How It Works -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4 mb-md-0">
+            <div class="card h-100 animate-on-scroll fade-in-up">
+                <div class="card-header py-3 bg-gradient text-white">
+                    <h5 class="mb-0">How It Works</h5>
+                </div>
+                <div class="card-body">
+                    <div class="process-step">
+                        <div class="step-number">1</div>
+                        <h6 class="mb-1">Course Representation</h6>
+                        <p class="text-muted">Courses are represented as <strong>nodes</strong> in a conflict graph</p>
+                    </div>
+                    <div class="process-step">
+                        <div class="step-number">2</div>
+                        <h6 class="mb-1">Conflict Identification</h6>
+                        <p class="text-muted">Conflicts between courses (shared students/instructors) are modeled as <strong>edges</strong></p>
+                    </div>
+                    <div class="process-step">
+                        <div class="step-number">3</div>
+                        <h6 class="mb-1">Graph Coloring</h6>
+                        <p class="text-muted">A graph coloring algorithm assigns time slots to avoid scheduling conflicts</p>
+                    </div>
+                    <div class="process-step">
+                        <div class="step-number">4</div>
+                        <h6 class="mb-1">Constraint Application</h6>
+                        <p class="text-muted">Room capacity and instructor availability constraints are enforced</p>
+                    </div>
+                    <div class="process-step">
+                        <div class="step-number">5</div>
+                        <h6 class="mb-1">Conflict-Free Schedule</h6>
+                        <p class="text-muted">The result is an optimized conflict-free timetable</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card h-100 animate-on-scroll fade-in-up">
+                <div class="card-header py-3 bg-gradient-secondary text-white">
+                    <h5 class="mb-0">Scheduling Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <h6 class="mb-0">Time Slots</h6>
+                        <a href="{{ url_for('timeslots') }}" class="text-decoration-none">
+                            <i class="fas fa-plus"></i> Add
+                        </a>
+                    </div>
+                    <div class="progress mb-4" style="height: 8px;">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 75%;"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-3">
+                        <h6 class="mb-0">Instructor Assignments</h6>
+                        <a href="{{ url_for('instructors') }}" class="text-decoration-none">
+                            <i class="fas fa-plus"></i> Add
+                        </a>
+                    </div>
+                    <div class="progress mb-4" style="height: 8px;">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: 65%;"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-3">
+                        <h6 class="mb-0">Room Assignments</h6>
+                        <a href="{{ url_for('classrooms') }}" class="text-decoration-none">
+                            <i class="fas fa-plus"></i> Add
+                        </a>
+                    </div>
+                    <div class="progress mb-4" style="height: 8px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 80%;"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-3">
+                        <h6 class="mb-0">Student Enrollments</h6>
+                        <a href="{{ url_for('students') }}" class="text-decoration-none">
+                            <i class="fas fa-plus"></i> Add
+                        </a>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: 60%;"></div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-4">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-info-circle me-3 fa-2x"></i>
+                            <div>
+                                <h6 class="mb-1 alert-heading">Ready to Schedule</h6>
+                                <p class="mb-0 small">Click the "Generate Timetable" button to create a conflict-free schedule.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-center py-3">
+                    <form action="{{ url_for('run_scheduler') }}" method="POST">
+                        <button type="submit" class="btn btn-primary btn-lg px-4">
+                            <i class="fas fa-magic me-2"></i> Generate Timetable
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // View toggle functionality for resources
+        const listViewBtn = document.getElementById('list-view-btn');
+        const gridViewBtn = document.getElementById('grid-view-btn');
+        const listView = document.getElementById('list-view');
+        const gridView = document.getElementById('grid-view');
+        
+        if (listViewBtn && gridViewBtn && listView && gridView) {
+            // Set active state
+            const setActiveState = (activeBtn, inactiveBtn) => {
+                activeBtn.classList.add('active');
+                inactiveBtn.classList.remove('active');
+            };
+            
+            listViewBtn.addEventListener('click', function() {
+                listView.style.display = 'block';
+                gridView.style.display = 'none';
+                setActiveState(listViewBtn, gridViewBtn);
+                localStorage.setItem('dashboardViewPreference', 'list');
+            });
+            
+            gridViewBtn.addEventListener('click', function() {
+                gridView.style.display = 'flex';
+                listView.style.display = 'none';
+                setActiveState(gridViewBtn, listViewBtn);
+                localStorage.setItem('dashboardViewPreference', 'grid');
+            });
+            
+            // Load user preference if available
+            const viewPreference = localStorage.getItem('dashboardViewPreference');
+            if (viewPreference === 'grid') {
+                gridViewBtn.click();
+            } else {
+                listViewBtn.click();
+            }
+        }
+        
+        // Counter animation for statistics
+        const counterElements = document.querySelectorAll('.counter-animation');
+        
+        counterElements.forEach(counter => {
+            const target = +counter.getAttribute('data-target');
+            const count = +counter.innerText;
+            const speed = 200; // Animation speed - lower is faster
+            
+            const inc = target / speed;
+            
+            if (count < target) {
+                const updateCount = () => {
+                    const currentCount = +counter.innerText;
+                    if (currentCount < target) {
+                        counter.innerText = Math.ceil(currentCount + inc);
+                        setTimeout(updateCount, 1);
+                    } else {
+                        counter.innerText = target;
+                    }
+                };
+                
+                updateCount();
+            }
+        });
+    });
+</script>
+{% endblock %} 

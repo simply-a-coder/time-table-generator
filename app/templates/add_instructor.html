@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Add Instructor - University Timetable Scheduler{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Add Instructor</h2>
+        <p class="lead">Add a new faculty member to the system</p>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-gradient text-white">
+                <h5 class="mb-0">Instructor Information</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('add_instructor') }}" method="post">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                        <div class="form-text">Enter the instructor's full name</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                        <div class="form-text">Enter a unique email address for the instructor</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary">Add Instructor</button>
+                        <a href="{{ url_for('instructors') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-gradient text-white">
+                <h5 class="mb-0">Instructions</h5>
+            </div>
+            <div class="card-body">
+                <p>Fill in the instructor details to add a new faculty member to the system.</p>
+                <ul>
+                    <li><strong>Full Name:</strong> The complete name of the instructor.</li>
+                    <li><strong>Email Address:</strong> A unique email address that will be used for identification.</li>
+                </ul>
+                <p>After adding the instructor, you can assign them to courses from the courses management page.</p>
+                <div class="alert alert-info mt-3">
+                    <p class="mb-0"><strong>Note:</strong> Make sure to assign instructors to courses before running the scheduler to properly handle scheduling constraints.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

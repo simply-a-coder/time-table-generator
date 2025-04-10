@@ -1,0 +1,664 @@
+{% extends "base.html" %}
+
+{% block title %}Timetable - University Timetable Scheduler{% endblock %}
+
+{% block extra_css %}
+<style>
+    .timetable-card {
+        border-radius: var(--border-radius-sm);
+        box-shadow: var(--shadow-small);
+        transition: var(--transition-bounce);
+        background: white;
+        overflow: hidden;
+        height: 100%;
+    }
+    
+    .timetable-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-medium);
+    }
+    
+    .course-block {
+        border-radius: var(--border-radius-sm);
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        transition: var(--transition-bounce);
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+    }
+    
+    .course-block::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+    }
+    
+    .course-block:hover {
+        transform: translateY(-3px) scale(1.03);
+        box-shadow: var(--shadow-small);
+    }
+    
+    .course-block.purple::before { background-color: var(--primary-color); }
+    .course-block.blue::before { background-color: var(--secondary-color); }
+    .course-block.green::before { background-color: var(--success-color); }
+    .course-block.yellow::before { background-color: var(--warning-color); }
+    .course-block.red::before { background-color: var(--danger-color); }
+    .course-block.teal::before { background-color: var(--info-color); }
+    
+    .course-block.purple { background-color: rgba(142, 68, 173, 0.1); }
+    .course-block.blue { background-color: rgba(52, 152, 219, 0.1); }
+    .course-block.green { background-color: rgba(46, 204, 113, 0.1); }
+    .course-block.yellow { background-color: rgba(241, 196, 15, 0.1); }
+    .course-block.red { background-color: rgba(231, 76, 60, 0.1); }
+    .course-block.teal { background-color: rgba(26, 188, 156, 0.1); }
+    
+    .highlight-course {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: var(--shadow-small);
+        z-index: 1;
+    }
+    
+    .course-detail {
+        font-size: 0.8rem;
+        color: var(--gray-color);
+    }
+    
+    .course-detail i {
+        width: 16px;
+        text-align: center;
+        margin-right: 4px;
+    }
+    
+    .course-popover {
+        max-width: 300px;
+    }
+    
+    .time-label {
+        font-weight: 600;
+        color: var(--primary-color);
+        font-size: 0.9rem;
+    }
+    
+    .filter-btn.active {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    
+    .empty-slot {
+        height: 60px;
+        border: 2px dashed var(--gray-light);
+        border-radius: var(--border-radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--gray-color);
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .nav-tabs .nav-link.active {
+        font-weight: 600;
+        border-bottom: 3px solid var(--primary-color);
+    }
+    
+    .tab-pane {
+        padding: 1.5rem 0;
+    }
+    
+    .course-colors {
+        position: fixed;
+        top: 20%;
+        right: 20px;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        background: white;
+        padding: 10px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-medium);
+    }
+    
+    .color-option {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: transform 0.3s;
+    }
+    
+    .color-option:hover {
+        transform: scale(1.2);
+    }
+    
+    @media print {
+        .course-colors {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="display-5">Interactive Timetable</h1>
+            <div class="d-flex gap-2">
+                <form action="{{ url_for('run_scheduler') }}" method="POST">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-magic me-2"></i> Generate Timetable
+                    </button>
+                </form>
+                <form action="{{ url_for('reset_schedule') }}" method="POST" class="ms-2">
+                    <button class="btn btn-outline-danger confirm-action" type="submit">
+                        <i class="fas fa-trash-alt me-2"></i> Reset Schedule
+                    </button>
+                </form>
+                <a href="{{ url_for('export_timetable') }}" class="btn btn-success ms-2">
+                    <i class="fas fa-file-csv me-2"></i> Export CSV
+                </a>
+                <button class="btn btn-primary ms-2" type="button" data-bs-toggle="modal" data-bs-target="#importTimetableModal">
+                    <i class="fas fa-file-import me-2"></i> Import Timetable
+                </button>
+                <div class="dropdown ms-2">
+                    <button class="btn btn-info dropdown-toggle" type="button" id="manualAssignDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-calendar-plus me-2"></i> Manual Assignment
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="manualAssignDropdown">
+                        {% for course in courses %}
+                            <li><a class="dropdown-item" href="{{ url_for('assign_course', course_id=course.id) }}">{{ course.code }}: {{ course.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <button class="btn btn-outline-secondary ms-2" onclick="window.print()">
+                    <i class="fas fa-print me-2"></i> Print Timetable
+                </button>
+            </div>
+        </div>
+        
+        <!-- Filter options -->
+        <div class="card mb-4 animate-on-scroll fade-in-up">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-3">
+                        <label for="filterInput" class="form-label"><i class="fas fa-search me-2"></i>Search Courses:</label>
+                        <input type="text" class="form-control" id="filterInput" placeholder="Enter course code or name">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label mb-2"><i class="fas fa-filter me-2"></i>Filter By:</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-sm btn-outline-primary filter-btn active" data-filter="all">All</button>
+                            <button class="btn btn-sm btn-outline-primary filter-btn" data-filter="scheduled">Scheduled</button>
+                            <button class="btn btn-sm btn-outline-primary filter-btn" data-filter="unscheduled">Unscheduled</button>
+                            <button class="btn btn-sm btn-outline-primary filter-btn" data-filter="instructor">With Instructor</button>
+                            <button class="btn btn-sm btn-outline-primary filter-btn" data-filter="no-instructor">No Instructor</button>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-end">
+                        <label class="form-label mb-2"><i class="fas fa-fill-drip me-2"></i>Color Theme:</label>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button class="btn btn-sm btn-outline-primary" id="colorByInstructor">By Instructor</button>
+                            <button class="btn btn-sm btn-outline-primary" id="colorByCourse">By Course</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card animate-on-scroll fade-in-up">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="timetableTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="by-day-tab" data-bs-toggle="tab" data-bs-target="#by-day" type="button" role="tab">
+                            <i class="fas fa-calendar-day me-1"></i> By Day
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="by-course-tab" data-bs-toggle="tab" data-bs-target="#by-course" type="button" role="tab">
+                            <i class="fas fa-book me-1"></i> By Course
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="by-instructor-tab" data-bs-toggle="tab" data-bs-target="#by-instructor" type="button" role="tab">
+                            <i class="fas fa-chalkboard-teacher me-1"></i> By Instructor
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="by-classroom-tab" data-bs-toggle="tab" data-bs-target="#by-classroom" type="button" role="tab">
+                            <i class="fas fa-door-open me-1"></i> By Classroom
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="timetableTabContent">
+                    <!-- Timetable by Day -->
+                    <div class="tab-pane fade show active" id="by-day" role="tabpanel">
+                        {% set days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] %}
+                        {% set colors = ['purple', 'blue', 'green', 'yellow', 'red', 'teal'] %}
+                        
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="120">Time Slot</th>
+                                        {% for day in days %}
+                                            <th>{{ day }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for time_slot in timeslots if time_slot.day == 'All' %}
+                                        <tr>
+                                            <td class="time-label">{{ time_slot.start_time.strftime('%H:%M') }} - {{ time_slot.end_time.strftime('%H:%M') }}</td>
+                                            {% for day in days %}
+                                                <td>
+                                                    {% set found_courses = [] %}
+                                                    {% for course in courses if course.time_slot_id == time_slot.id %}
+                                                        {% set found_courses = found_courses + [course] %}
+                                                        <div class="course-block {{ colors[loop.index0 % colors|length] }}" 
+                                                             data-course-id="{{ course.id }}"
+                                                             data-bs-toggle="popover"
+                                                             data-bs-trigger="hover"
+                                                             data-bs-html="true"
+                                                             data-bs-content="<div class='course-popover'><h6>{{ course.name }}</h6><p>Instructor: {{ course.instructor.name if course.instructor else 'Not assigned' }}</p><p>Classroom: {{ course.classroom.name if course.classroom else 'Not assigned' }}</p><p>Students: {{ course.students.count() }}</p></div>"
+                                                             title="{{ course.code }}">
+                                                            <strong>{{ course.code }}</strong>
+                                                            <div class="course-detail mt-1">
+                                                                <div><i class="fas fa-user-tie"></i> {{ course.instructor.name if course.instructor else 'No instructor' }}</div>
+                                                                <div><i class="fas fa-door-open"></i> {{ course.classroom.name if course.classroom else 'No room' }}</div>
+                                                            </div>
+                                                        </div>
+                                                    {% endfor %}
+                                                    
+                                                    {% if found_courses|length == 0 %}
+                                                        <div class="empty-slot">
+                                                            <span><i class="fas fa-plus-circle me-2"></i>Available</span>
+                                                        </div>
+                                                    {% endif %}
+                                                </td>
+                                            {% endfor %}
+                                        </tr>
+                                    {% endfor %}
+                                    
+                                    {% for time_slot in timeslots if time_slot.day != 'All' %}
+                                        <tr>
+                                            <td class="time-label">{{ time_slot.start_time.strftime('%H:%M') }} - {{ time_slot.end_time.strftime('%H:%M') }}</td>
+                                            {% for day in days %}
+                                                <td>
+                                                    {% if time_slot.day == day %}
+                                                        {% set found_courses = [] %}
+                                                        {% for course in courses if course.time_slot_id == time_slot.id %}
+                                                            {% set found_courses = found_courses + [course] %}
+                                                            <div class="course-block {{ colors[loop.index0 % colors|length] }}" 
+                                                                 data-course-id="{{ course.id }}"
+                                                                 data-bs-toggle="popover"
+                                                                 data-bs-trigger="hover"
+                                                                 data-bs-html="true"
+                                                                 data-bs-content="<div class='course-popover'><h6>{{ course.name }}</h6><p>Instructor: {{ course.instructor.name if course.instructor else 'Not assigned' }}</p><p>Classroom: {{ course.classroom.name if course.classroom else 'Not assigned' }}</p><p>Students: {{ course.students.count() }}</p></div>"
+                                                                 title="{{ course.code }}">
+                                                                <strong>{{ course.code }}</strong>
+                                                                <div class="course-detail mt-1">
+                                                                    <div><i class="fas fa-user-tie"></i> {{ course.instructor.name if course.instructor else 'No instructor' }}</div>
+                                                                    <div><i class="fas fa-door-open"></i> {{ course.classroom.name if course.classroom else 'No room' }}</div>
+                                                                </div>
+                                                            </div>
+                                                        {% endfor %}
+                                                        
+                                                        {% if found_courses|length == 0 %}
+                                                            <div class="empty-slot">
+                                                                <span><i class="fas fa-plus-circle me-2"></i>Available</span>
+                                                            </div>
+                                                        {% endif %}
+                                                    {% else %}
+                                                        <div class="empty-slot" style="opacity: 0.5;">
+                                                            <span>-</span>
+                                                        </div>
+                                                    {% endif %}
+                                                </td>
+                                            {% endfor %}
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Timetable by Course -->
+                    <div class="tab-pane fade" id="by-course" role="tabpanel">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="courseSearch" placeholder="Search for courses...">
+                        </div>
+                        
+                        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                            {% for course in courses %}
+                                {% set color_idx = loop.index0 % colors|length %}
+                                <div class="col course-item">
+                                    <div class="timetable-card h-100">
+                                        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                                            <h5 class="mb-0">{{ course.code }}</h5>
+                                            <span class="badge {{ 'bg-success' if course.time_slot else 'bg-danger' }}">
+                                                {{ 'Scheduled' if course.time_slot else 'Unscheduled' }}
+                                            </span>
+                                        </div>
+                                        <div class="card-body">
+                                            <h6 class="card-title mb-3">{{ course.name }}</h6>
+                                            
+                                            <div class="d-flex mb-2">
+                                                <div style="width: 24px;"><i class="fas fa-user-tie text-primary"></i></div>
+                                                <div>
+                                                    {% if course.instructor %}
+                                                        {{ course.instructor.name }}
+                                                    {% else %}
+                                                        <span class="text-muted">No instructor assigned</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="d-flex mb-2">
+                                                <div style="width: 24px;"><i class="fas fa-clock text-info"></i></div>
+                                                <div>
+                                                    {% if course.time_slot %}
+                                                        {{ course.time_slot }}
+                                                    {% else %}
+                                                        <span class="text-danger">Not scheduled</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="d-flex mb-2">
+                                                <div style="width: 24px;"><i class="fas fa-door-open text-success"></i></div>
+                                                <div>
+                                                    {% if course.classroom %}
+                                                        {{ course.classroom.name }}
+                                                    {% else %}
+                                                        <span class="text-danger">No room assigned</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="d-flex mb-2">
+                                                <div style="width: 24px;"><i class="fas fa-user-graduate text-warning"></i></div>
+                                                <div>
+                                                    {{ course.students.count() }} students
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Timetable by Instructor -->
+                    <div class="tab-pane fade" id="by-instructor" role="tabpanel">
+                        <div class="row">
+                            {% for instructor in instructors %}
+                                <div class="col-md-6 mb-4">
+                                    <div class="timetable-card h-100">
+                                        <div class="card-header bg-white py-3">
+                                            <h5 class="mb-0">{{ instructor.name }}</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="d-flex mb-3">
+                                                <div style="width: 24px;"><i class="fas fa-envelope text-primary"></i></div>
+                                                <div>{{ instructor.email }}</div>
+                                            </div>
+                                            
+                                            <h6 class="border-bottom pb-2 mb-3">Assigned Courses</h6>
+                                            
+                                            {% set instructor_courses = courses|selectattr('instructor_id', 'eq', instructor.id)|list %}
+                                            {% if instructor_courses %}
+                                                {% for course in instructor_courses %}
+                                                    {% set color_idx = loop.index0 % colors|length %}
+                                                    <div class="course-block {{ colors[color_idx] }} mb-2" data-course-id="{{ course.id }}">
+                                                        <strong>{{ course.code }}</strong>: {{ course.name }}
+                                                        <div class="course-detail mt-1">
+                                                            {% if course.time_slot %}
+                                                                <div><i class="fas fa-clock"></i> {{ course.time_slot }}</div>
+                                                            {% else %}
+                                                                <div class="text-danger"><i class="fas fa-exclamation-circle"></i> Not scheduled</div>
+                                                            {% endif %}
+                                                            
+                                                            {% if course.classroom %}
+                                                                <div><i class="fas fa-door-open"></i> {{ course.classroom.name }}</div>
+                                                            {% else %}
+                                                                <div class="text-danger"><i class="fas fa-exclamation-circle"></i> No room</div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            {% else %}
+                                                <div class="alert alert-info">
+                                                    <i class="fas fa-info-circle me-2"></i> No courses assigned to this instructor
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Timetable by Classroom -->
+                    <div class="tab-pane fade" id="by-classroom" role="tabpanel">
+                        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                            {% for classroom in classrooms %}
+                                <div class="col">
+                                    <div class="timetable-card h-100">
+                                        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                                            <h5 class="mb-0">{{ classroom.name }}</h5>
+                                            <span class="badge bg-info">Capacity: {{ classroom.capacity }}</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <h6 class="border-bottom pb-2 mb-3">Scheduled Courses</h6>
+                                            
+                                            {% set classroom_courses = courses|selectattr('classroom_id', 'eq', classroom.id)|list %}
+                                            {% if classroom_courses %}
+                                                {% for course in classroom_courses %}
+                                                    {% set color_idx = loop.index0 % colors|length %}
+                                                    <div class="course-block {{ colors[color_idx] }} mb-2" data-course-id="{{ course.id }}">
+                                                        <strong>{{ course.code }}</strong>: {{ course.name }}
+                                                        <div class="course-detail mt-1">
+                                                            {% if course.time_slot %}
+                                                                <div><i class="fas fa-clock"></i> {{ course.time_slot }}</div>
+                                                            {% else %}
+                                                                <div class="text-danger"><i class="fas fa-exclamation-circle"></i> Not scheduled</div>
+                                                            {% endif %}
+                                                            
+                                                            {% if course.instructor %}
+                                                                <div><i class="fas fa-user-tie"></i> {{ course.instructor.name }}</div>
+                                                            {% else %}
+                                                                <div class="text-danger"><i class="fas fa-exclamation-circle"></i> No instructor</div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            {% else %}
+                                                <div class="alert alert-info">
+                                                    <i class="fas fa-info-circle me-2"></i> No courses scheduled in this classroom
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize popovers
+    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    var popoverList = popoverTriggerList.map(function(popoverTriggerEl) {
+        return new bootstrap.Popover(popoverTriggerEl, {
+            container: 'body'
+        });
+    });
+    
+    // Course search filter
+    const filterInput = document.getElementById('filterInput');
+    if (filterInput) {
+        filterInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const courseBlocks = document.querySelectorAll('.course-block');
+            
+            courseBlocks.forEach(block => {
+                const text = block.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    block.style.display = '';
+                } else {
+                    block.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // Course search in the course tab
+    const courseSearch = document.getElementById('courseSearch');
+    if (courseSearch) {
+        courseSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const courseItems = document.querySelectorAll('.course-item');
+            
+            courseItems.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // Filter buttons
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Remove active class from all buttons
+            filterBtns.forEach(b => b.classList.remove('active'));
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            const filter = this.getAttribute('data-filter');
+            const courseBlocks = document.querySelectorAll('.course-block');
+            
+            courseBlocks.forEach(block => {
+                const text = block.textContent.toLowerCase();
+                const hasInstructor = !text.includes('no instructor');
+                const hasTime = !text.includes('not scheduled');
+                
+                if (filter === 'all') {
+                    block.style.display = '';
+                } else if (filter === 'scheduled' && hasTime) {
+                    block.style.display = '';
+                } else if (filter === 'unscheduled' && !hasTime) {
+                    block.style.display = '';
+                } else if (filter === 'instructor' && hasInstructor) {
+                    block.style.display = '';
+                } else if (filter === 'no-instructor' && !hasInstructor) {
+                    block.style.display = '';
+                } else {
+                    block.style.display = 'none';
+                }
+            });
+        });
+    });
+    
+    // Color themes
+    const colorByCourse = document.getElementById('colorByCourse');
+    const colorByInstructor = document.getElementById('colorByInstructor');
+    
+    if (colorByCourse && colorByInstructor) {
+        colorByCourse.addEventListener('click', function() {
+            const courseBlocks = document.querySelectorAll('.course-block');
+            const colors = ['purple', 'blue', 'green', 'yellow', 'red', 'teal'];
+            
+            courseBlocks.forEach(block => {
+                // Remove all color classes
+                block.classList.remove('purple', 'blue', 'green', 'yellow', 'red', 'teal');
+                
+                // Add a color based on course ID
+                const courseId = block.getAttribute('data-course-id');
+                const colorIdx = courseId % colors.length;
+                block.classList.add(colors[colorIdx]);
+            });
+        });
+        
+        colorByInstructor.addEventListener('click', function() {
+            const courseBlocks = document.querySelectorAll('.course-block');
+            const colors = ['purple', 'blue', 'green', 'yellow', 'red', 'teal'];
+            const instructorMap = {};
+            let nextInstructorId = 0;
+            
+            courseBlocks.forEach(block => {
+                // Remove all color classes
+                block.classList.remove('purple', 'blue', 'green', 'yellow', 'red', 'teal');
+                
+                // Extract instructor name
+                const detailText = block.querySelector('.course-detail').textContent;
+                const instructorMatch = detailText.match(/([^:]+)(?:No instructor|No room)/);
+                let instructorName = 'unknown';
+                
+                if (instructorMatch) {
+                    instructorName = instructorMatch[1].trim();
+                }
+                
+                // Assign color based on instructor
+                if (!instructorMap.hasOwnProperty(instructorName)) {
+                    instructorMap[instructorName] = nextInstructorId++;
+                }
+                
+                const colorIdx = instructorMap[instructorName] % colors.length;
+                block.classList.add(colors[colorIdx]);
+            });
+        });
+    }
+});
+</script>
+
+<!-- Import Timetable Modal -->
+<div class="modal fade" id="importTimetableModal" tabindex="-1" aria-labelledby="importTimetableModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importTimetableModalLabel">Import Timetable CSV</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('import_timetable_route') }}" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="timetableFile" class="form-label">Choose Timetable CSV File</label>
+                        <input class="form-control" type="file" id="timetableFile" name="timetableFile" accept=".csv" required>
+                        <div class="form-text">
+                            Upload a timetable CSV file exported from this system or prepared in the same format.
+                            This will automatically assign time slots, classrooms, and instructors to courses.
+                        </div>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> After importing the timetable, you can click "Generate Timetable" to apply the graph coloring algorithm to resolve any conflicts.
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Import Timetable</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

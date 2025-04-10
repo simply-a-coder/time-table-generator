@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Assign Course - University Timetable Scheduler{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Assign Course: {{ course.code }}</h2>
+            <a href="{{ url_for('courses') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Back to Courses
+            </a>
+        </div>
+        
+        <div class="alert alert-info mb-4">
+            <div class="d-flex align-items-center">
+                <div class="me-3">
+                    <i class="fas fa-info-circle fa-2x"></i>
+                </div>
+                <div>
+                    <h5 class="alert-heading mb-1">Manual Course Assignment</h5>
+                    <p class="mb-0">
+                        You can manually assign this course to a time slot and classroom. The system will check for conflicts but will allow you to proceed with warnings.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Course Details</h5>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{ course.code }}: {{ course.name }}</h5>
+                
+                <div class="d-flex mb-3 mt-4">
+                    <div style="width: 24px;"><i class="fas fa-user-tie text-primary"></i></div>
+                    <div>
+                        {% if course.instructor %}
+                            <strong>Instructor:</strong> {{ course.instructor.name }}
+                        {% else %}
+                            <span class="text-danger">No instructor assigned</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="d-flex mb-3">
+                    <div style="width: 24px;"><i class="fas fa-user-graduate text-info"></i></div>
+                    <div>
+                        <strong>Students:</strong> {{ course.students.count() }}
+                    </div>
+                </div>
+                
+                <div class="d-flex mb-3">
+                    <div style="width: 24px;"><i class="fas fa-clock text-success"></i></div>
+                    <div>
+                        <strong>Current Time Slot:</strong>
+                        {% if course.time_slot %}
+                            {{ course.time_slot }}
+                        {% else %}
+                            <span class="text-danger">Not assigned</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="d-flex mb-3">
+                    <div style="width: 24px;"><i class="fas fa-door-open text-warning"></i></div>
+                    <div>
+                        <strong>Current Classroom:</strong>
+                        {% if course.classroom %}
+                            {{ course.classroom.name }} (Capacity: {{ course.classroom.capacity }})
+                        {% else %}
+                            <span class="text-danger">Not assigned</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Assign Time Slot and Classroom</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('assign_course', course_id=course.id) }}" method="post">
+                    <div class="mb-3">
+                        <label for="time_slot_id" class="form-label">Time Slot</label>
+                        <select class="form-select" id="time_slot_id" name="time_slot_id" required>
+                            <option value="">Select a time slot</option>
+                            {% for time_slot in time_slots %}
+                                <option value="{{ time_slot.id }}" {% if course.time_slot_id == time_slot.id %}selected{% endif %}>
+                                    {{ time_slot }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="classroom_id" class="form-label">Classroom</label>
+                        <select class="form-select" id="classroom_id" name="classroom_id" required>
+                            <option value="">Select a classroom</option>
+                            {% for classroom in classrooms %}
+                                <option value="{{ classroom.id }}" 
+                                        {% if course.classroom_id == classroom.id %}selected{% endif %}
+                                        data-capacity="{{ classroom.capacity }}">
+                                    {{ classroom.name }} (Capacity: {{ classroom.capacity }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div id="capacity-warning" class="form-text text-danger" style="display: none;">
+                            Warning: The selected classroom capacity is less than the number of students ({{ course.students.count() }}).
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('courses') }}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Assign Course</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-warning text-white">
+                <h5 class="mb-0">Potential Conflicts</h5>
+            </div>
+            <div class="card-body">
+                <div id="conflicts-info">
+                    <p class="mb-0">Select a time slot and classroom to check for potential conflicts.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const classroomSelect = document.getElementById('classroom_id');
+        const capacityWarning = document.getElementById('capacity-warning');
+        const studentCount = {{ course.students.count() }};
+        
+        // Check classroom capacity
+        classroomSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                const capacity = parseInt(selectedOption.getAttribute('data-capacity'));
+                if (capacity < studentCount) {
+                    capacityWarning.style.display = 'block';
+                } else {
+                    capacityWarning.style.display = 'none';
+                }
+            } else {
+                capacityWarning.style.display = 'none';
+            }
+        });
+        
+        // Check initial selection
+        if (classroomSelect.value) {
+            const selectedOption = classroomSelect.options[classroomSelect.selectedIndex];
+            const capacity = parseInt(selectedOption.getAttribute('data-capacity'));
+            if (capacity < studentCount) {
+                capacityWarning.style.display = 'block';
+            }
+        }
+    });
+</script>
+{% endblock %} 

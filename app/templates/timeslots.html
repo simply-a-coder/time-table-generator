@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Time Slots - University Timetable Scheduler{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h2>Time Slots</h2>
+        <p class="lead">Manage available time periods for scheduling</p>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('add_timeslot') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add New Time Slot
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow">
+            <div class="card-header bg-gradient d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-white">Time Slots List</h5>
+                <input type="text" id="timeslot-search" class="form-control form-control-sm w-25" placeholder="Search time slots...">
+            </div>
+            <div class="card-body">
+                {% if timeslots %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Day</th>
+                                    <th>Start Time</th>
+                                    <th>End Time</th>
+                                    <th>Duration</th>
+                                    <th>Utilization</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for timeslot in timeslots %}
+                                    <tr class="timeslot-row">
+                                        <td>{{ timeslot.day }}</td>
+                                        <td>{{ timeslot.start_time.strftime('%H:%M') }}</td>
+                                        <td>{{ timeslot.end_time.strftime('%H:%M') }}</td>
+                                        <td>
+                                            {% set duration = (timeslot.end_time.hour * 60 + timeslot.end_time.minute) - (timeslot.start_time.hour * 60 + timeslot.start_time.minute) %}
+                                            {{ duration // 60 }}h {% if duration % 60 != 0 %}{{ duration % 60 }}m{% endif %}
+                                        </td>
+                                        <td>
+                                            {% set course_count = timeslot.courses|length %}
+                                            {% if course_count > 0 %}
+                                                <div class="d-flex align-items-center">
+                                                    <span class="badge bg-info me-2">{{ course_count }} courses</span>
+                                                    <button class="btn btn-sm btn-link p-0" type="button" data-bs-toggle="collapse" data-bs-target="#courses-{{ timeslot.id }}">
+                                                        View
+                                                    </button>
+                                                </div>
+                                                <div class="collapse mt-2" id="courses-{{ timeslot.id }}">
+                                                    <div class="card card-body p-2 bg-light">
+                                                        <ul class="list-unstyled mb-0">
+                                                            {% for course in timeslot.courses %}
+                                                                <li>{{ course.code }}: {{ course.name }}</li>
+                                                            {% endfor %}
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            {% else %}
+                                                <span class="text-muted">No assigned courses</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="#" class="btn btn-outline-secondary">Edit</a>
+                                                <a href="#" class="btn btn-outline-danger confirm-action">Delete</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <p class="mb-0">No time slots have been added yet. Click the "Add New Time Slot" button to add a time slot.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('timeslot-search');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                const searchTerm = this.value.toLowerCase();
+                const timeslotRows = document.querySelectorAll('.timeslot-row');
+                
+                timeslotRows.forEach(function(row) {
+                    const text = row.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %} 

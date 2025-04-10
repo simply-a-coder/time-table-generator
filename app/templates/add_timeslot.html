@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Add Time Slot - University Timetable Scheduler{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Add Time Slot</h2>
+        <p class="lead">Add a new time period for scheduling classes</p>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-gradient text-white">
+                <h5 class="mb-0">Time Slot Information</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('add_timeslot') }}" method="post">
+                    <div class="mb-3">
+                        <label for="day" class="form-label">Day of Week</label>
+                        <select class="form-select" id="day" name="day" required>
+                            <option value="" selected disabled>Select a day</option>
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                            <option value="Saturday">Saturday</option>
+                            <option value="Sunday">Sunday</option>
+                            <option value="All">All Days</option>
+                        </select>
+                        <div class="form-text">Select the day for this time slot</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="start_time" class="form-label">Start Time</label>
+                        <input type="time" class="form-control" id="start_time" name="start_time" required>
+                        <div class="form-text">Enter the starting time in 24-hour format (e.g., 09:00)</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="end_time" class="form-label">End Time</label>
+                        <input type="time" class="form-control" id="end_time" name="end_time" required>
+                        <div class="form-text">Enter the ending time in 24-hour format (e.g., 10:30)</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary">Add Time Slot</button>
+                        <a href="{{ url_for('timeslots') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-gradient text-white">
+                <h5 class="mb-0">Instructions</h5>
+            </div>
+            <div class="card-body">
+                <p>Fill in the time slot details to add a new period for scheduling classes.</p>
+                <ul>
+                    <li><strong>Day of Week:</strong> The day this time slot is available (select "All Days" for slots that can be used any day).</li>
+                    <li><strong>Start Time:</strong> The beginning of the time period.</li>
+                    <li><strong>End Time:</strong> The end of the time period.</li>
+                </ul>
+                <p>In the scheduling algorithm, time slots are treated as "colors" in the graph coloring process.</p>
+                <div class="alert alert-info mt-3">
+                    <p class="mb-0"><strong>Note:</strong> Time slots should be of appropriate length for your classes (typically 1-3 hours). Make sure to add enough time slots to accommodate all courses.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form validation
+        const form = document.querySelector('form');
+        const startTimeInput = document.getElementById('start_time');
+        const endTimeInput = document.getElementById('end_time');
+        
+        form.addEventListener('submit', function(e) {
+            const startTime = startTimeInput.value;
+            const endTime = endTimeInput.value;
+            
+            if (startTime >= endTime) {
+                e.preventDefault();
+                alert('End time must be after start time.');
+                return false;
+            }
+        });
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Classroom - University Timetable Scheduler{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Edit Classroom</h2>
+            <a href="{{ url_for('classrooms') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Back to Classrooms
+            </a>
+        </div>
+    </div>
+    
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Classroom Information</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('edit_classroom', classroom_id=classroom.id) }}" method="post">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Classroom Name</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ classroom.name }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="capacity" class="form-label">Seating Capacity</label>
+                        <input type="number" class="form-control" id="capacity" name="capacity" min="1" value="{{ classroom.capacity }}" required>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ url_for('classrooms') }}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Update Classroom</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        {% if classroom.courses %}
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Scheduled Courses</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for course in classroom.courses %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ course.code }}</strong>: {{ course.name }}
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas fa-user-tie me-1 text-primary"></i>
+                                    {{ course.instructor.name if course.instructor else 'No instructor' }}
+                                </div>
+                                {% if course.time_slot %}
+                                <span class="badge bg-success">
+                                    {{ course.time_slot }}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-danger">
+                                    Not Scheduled
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

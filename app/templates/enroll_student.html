@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Enroll Student - University Timetable Scheduler{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Enroll Student: {{ student.name }}</h2>
+        <p class="lead">Manage course enrollments for this student</p>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow">
+            <div class="card-header bg-gradient text-white">
+                <h5 class="mb-0">Course Enrollment</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('enroll_student', student_id=student.id) }}" method="post">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-text mb-2">
+                                <strong>Student:</strong> {{ student.name }} ({{ student.email }})
+                            </div>
+                            <div class="form-text">
+                                Select the courses this student should be enrolled in. You can select multiple courses.
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="select-all">Select All</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="deselect-all">Deselect All</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if courses %}
+                        <div class="row">
+                            {% for course in courses %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100 {% if course in student.courses %}border-primary{% endif %}">
+                                        <div class="card-body">
+                                            <div class="form-check">
+                                                <input class="form-check-input course-checkbox" type="checkbox" 
+                                                    name="courses" value="{{ course.id }}" id="course-{{ course.id }}"
+                                                    {% if course in student.courses %}checked{% endif %}>
+                                                <label class="form-check-label" for="course-{{ course.id }}">
+                                                    <strong>{{ course.code }}</strong>: {{ course.name }}
+                                                </label>
+                                            </div>
+                                            <div class="mt-2 small text-muted">
+                                                {% if course.instructor %}
+                                                    <div>Instructor: {{ course.instructor.name }}</div>
+                                                {% endif %}
+                                                <div>Students enrolled: {{ course.students.count() }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <p class="mb-0">No courses are available. Please add courses before enrolling students.</p>
+                        </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="submit" class="btn btn-primary">Save Enrollment</button>
+                        <a href="{{ url_for('students') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Select/Deselect All functionality
+        const selectAllBtn = document.getElementById('select-all');
+        const deselectAllBtn = document.getElementById('deselect-all');
+        const courseCheckboxes = document.querySelectorAll('.course-checkbox');
+        
+        if (selectAllBtn) {
+            selectAllBtn.addEventListener('click', function() {
+                courseCheckboxes.forEach(function(checkbox) {
+                    checkbox.checked = true;
+                });
+            });
+        }
+        
+        if (deselectAllBtn) {
+            deselectAllBtn.addEventListener('click', function() {
+                courseCheckboxes.forEach(function(checkbox) {
+                    checkbox.checked = false;
+                });
+            });
+        }
+        
+        // Highlight selected courses
+        courseCheckboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                const card = this.closest('.card');
+                if (this.checked) {
+                    card.classList.add('border-primary');
+                } else {
+                    card.classList.remove('border-primary');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %} 

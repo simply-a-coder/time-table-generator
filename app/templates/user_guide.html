@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+
+{% block title %}User Guide - University Timetable Scheduler{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="display-5">User Guide</h1>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                <i class="fas fa-home me-2"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="list-group sticky-top" style="top: 2rem;">
+            <a href="#getting-started" class="list-group-item list-group-item-action">Getting Started</a>
+            <a href="#setup-data" class="list-group-item list-group-item-action">Setting Up Data</a>
+            <a href="#generate-timetable" class="list-group-item list-group-item-action">Generating Timetable</a>
+            <a href="#manual-assignment" class="list-group-item list-group-item-action">Manual Assignment</a>
+            <a href="#manage-conflicts" class="list-group-item list-group-item-action">Managing Conflicts</a>
+            <a href="#course-materials" class="list-group-item list-group-item-action">Course Materials</a>
+            <a href="#export-data" class="list-group-item list-group-item-action">Exporting Data</a>
+            <a href="#import-data" class="list-group-item list-group-item-action">Importing Data</a>
+            <a href="#troubleshooting" class="list-group-item list-group-item-action">Troubleshooting</a>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <div class="card mb-4" id="getting-started">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Getting Started</h4>
+            </div>
+            <div class="card-body">
+                <p>Welcome to the University Timetable Scheduler! This guide will help you understand how to use the system effectively.</p>
+                
+                <h5>System Requirements</h5>
+                <ul>
+                    <li>A modern web browser (Chrome, Firefox, Edge, or Safari)</li>
+                    <li>Internet connection</li>
+                </ul>
+                
+                <h5>Basic Workflow</h5>
+                <ol>
+                    <li>Set up your data (instructors, classrooms, courses, students)</li>
+                    <li>Enroll students in courses</li>
+                    <li>Generate a timetable or manually assign courses</li>
+                    <li>Review and resolve conflicts</li>
+                    <li>Export the final timetable</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="card mb-4" id="setup-data">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Setting Up Data</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> The system requires the following data to be set up before generating a timetable.
+                </div>
+                
+                <h5>Step 1: Add Instructors</h5>
+                <ol>
+                    <li>Go to the <strong>Instructors</strong> page from the navigation menu</li>
+                    <li>Click the <strong>Add Instructor</strong> button</li>
+                    <li>Fill in the instructor's name and email</li>
+                    <li>Click <strong>Add Instructor</strong> to save</li>
+                </ol>
+                
+                <h5>Step 2: Add Classrooms</h5>
+                <ol>
+                    <li>Go to the <strong>Classrooms</strong> page from the navigation menu</li>
+                    <li>Click the <strong>Add Classroom</strong> button</li>
+                    <li>Enter the classroom name and seating capacity</li>
+                    <li>Click <strong>Add Classroom</strong> to save</li>
+                </ol>
+                
+                <h5>Step 3: Add Time Slots</h5>
+                <ol>
+                    <li>Go to the <strong>Time Slots</strong> page from the navigation menu</li>
+                    <li>Click the <strong>Add Time Slot</strong> button</li>
+                    <li>Select the day of the week and enter start/end times</li>
+                    <li>Click <strong>Add Time Slot</strong> to save</li>
+                </ol>
+                
+                <h5>Step 4: Add Courses</h5>
+                <ol>
+                    <li>Go to the <strong>Courses</strong> page from the navigation menu</li>
+                    <li>Click the <strong>Add Course</strong> button</li>
+                    <li>Enter the course code, name, and select an instructor</li>
+                    <li>Click <strong>Add Course</strong> to save</li>
+                </ol>
+                
+                <h5>Step 5: Add Students</h5>
+                <ol>
+                    <li>Go to the <strong>Students</strong> page from the navigation menu</li>
+                    <li>Click the <strong>Add Student</strong> button</li>
+                    <li>Enter the student's name and email</li>
+                    <li>Click <strong>Add Student</strong> to save</li>
+                </ol>
+                
+                <h5>Step 6: Enroll Students in Courses</h5>
+                <ol>
+                    <li>On the <strong>Students</strong> page, find a student and click <strong>Enroll</strong></li>
+                    <li>Select the courses the student will take</li>
+                    <li>Click <strong>Save Enrollment</strong> to confirm</li>
+                </ol>
+                
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i> You can also use the <strong>Import CSV</strong> option on each page to bulk import data.
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4" id="generate-timetable">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Generating Timetable</h4>
+            </div>
+            <div class="card-body">
+                <h5>Automatic Timetable Generation</h5>
+                <ol>
+                    <li>Go to the <strong>Scheduler</strong> page from the navigation menu</li>
+                    <li>Review the prerequisites to ensure all necessary data is available</li>
+                    <li>Click the <strong>Run Scheduler</strong> button</li>
+                    <li>Wait for the algorithm to complete (this may take a few moments)</li>
+                    <li>You will be redirected to the timetable view to see the results</li>
+                </ol>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i> The scheduler uses a graph coloring algorithm that attempts to find an optimal solution while respecting constraints. However, if there are too many conflicts, some courses may not be scheduled.
+                </div>
+                
+                <h5>Understanding the Results</h5>
+                <p>The timetable view shows courses organized by:</p>
+                <ul>
+                    <li><strong>By Day:</strong> A traditional weekly calendar view</li>
+                    <li><strong>By Course:</strong> Lists all courses with their assigned time slots and classrooms</li>
+                    <li><strong>By Instructor:</strong> Shows the schedule for each instructor</li>
+                    <li><strong>By Classroom:</strong> Shows the usage of each classroom</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mb-4" id="manual-assignment">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Manual Assignment</h4>
+            </div>
+            <div class="card-body">
+                <h5>Assigning Courses Manually</h5>
+                <ol>
+                    <li>Go to the <strong>Courses</strong> page from the navigation menu</li>
+                    <li>Find the course you want to assign and click the <strong>Assign</strong> button</li>
+                    <li>Select a time slot and classroom from the dropdown menus</li>
+                    <li>The system will check for conflicts and display warnings if found</li>
+                    <li>Click <strong>Assign Course</strong> to save</li>
+                </ol>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> Manual assignment is useful when the automatic scheduler cannot find a complete solution, or when you want to prioritize specific courses.
+                </div>
+                
+                <h5>Types of Conflicts to Watch For</h5>
+                <ul>
+                    <li><strong>Student Conflicts:</strong> A student is enrolled in two courses scheduled at the same time</li>
+                    <li><strong>Instructor Conflicts:</strong> An instructor is assigned to teach two courses at the same time</li>
+                    <li><strong>Classroom Conflicts:</strong> Two courses are assigned to the same classroom at the same time</li>
+                    <li><strong>Capacity Issues:</strong> A classroom is too small for the number of students enrolled</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mb-4" id="manage-conflicts">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Managing Conflicts</h4>
+            </div>
+            <div class="card-body">
+                <h5>Viewing Conflicts</h5>
+                <ol>
+                    <li>Go to the <strong>Conflicts</strong> page from the navigation menu</li>
+                    <li>Review the list of conflicts grouped by type (student or instructor)</li>
+                    <li>Each conflict shows the affected courses and the nature of the conflict</li>
+                </ol>
+                
+                <h5>Resolving Conflicts</h5>
+                <p>There are several ways to resolve conflicts:</p>
+                <ul>
+                    <li><strong>Change the time slot:</strong> Manually reassign one of the conflicting courses</li>
+                    <li><strong>Change enrollments:</strong> Adjust student enrollments to reduce conflicts</li>
+                    <li><strong>Add more time slots:</strong> Create additional time slots to provide more options</li>
+                    <li><strong>Add more classrooms:</strong> If classroom availability is a bottleneck</li>
+                </ul>
+                
+                <h5>Using the Conflict Graph</h5>
+                <ol>
+                    <li>Go to the <strong>Graph</strong> page from the navigation menu</li>
+                    <li>The visualization shows courses as nodes and conflicts as edges</li>
+                    <li>Red edges indicate instructor conflicts (higher priority)</li>
+                    <li>Gray edges indicate student conflicts</li>
+                    <li>Use this visual aid to identify clusters of conflicts that need attention</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="card mb-4" id="course-materials">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Course Materials</h4>
+            </div>
+            <div class="card-body">
+                <h5>Managing Course Materials</h5>
+                <ol>
+                    <li>Go to the <strong>Courses</strong> page from the navigation menu</li>
+                    <li>Find the course you want to manage and click <strong>Edit</strong></li>
+                    <li>In the edit page, click <strong>Manage Course Materials</strong></li>
+                    <li>You'll see a list of existing materials and an upload form</li>
+                </ol>
+                
+                <h5>Uploading New Materials</h5>
+                <ol>
+                    <li>Enter a name for the material</li>
+                    <li>Add an optional description</li>
+                    <li>Select a PDF file from your computer</li>
+                    <li>Click <strong>Upload Material</strong></li>
+                </ol>
+                
+                <h5>Managing Existing Materials</h5>
+                <p>For each uploaded material, you can:</p>
+                <ul>
+                    <li><strong>View:</strong> Open the PDF directly in your browser</li>
+                    <li><strong>Download:</strong> Save the PDF to your computer</li>
+                    <li><strong>Delete:</strong> Remove the material from the system</li>
+                </ul>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> Currently, only PDF files are supported for course materials.
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4" id="export-data">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Exporting Data</h4>
+            </div>
+            <div class="card-body">
+                <h5>Exporting the Timetable</h5>
+                <ol>
+                    <li>Go to the <strong>Timetable</strong> page from the navigation menu</li>
+                    <li>Click the <strong>Export CSV</strong> button</li>
+                    <li>A CSV file will be downloaded containing the complete timetable</li>
+                </ol>
+                
+                <h5>Printing the Timetable</h5>
+                <ol>
+                    <li>Go to the <strong>Timetable</strong> page from the navigation menu</li>
+                    <li>Choose the view you want to print (By Day, By Course, etc.)</li>
+                    <li>Click the <strong>Print Timetable</strong> button</li>
+                    <li>Use your browser's print dialog to print or save as PDF</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="card mb-4" id="import-data">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Importing Data</h4>
+            </div>
+            <div class="card-body">
+                <h5>Importing CSV Data</h5>
+                <ol>
+                    <li>Click the <strong>Upload</strong> button in the navigation bar</li>
+                    <li>Select <strong>CSV Data Import</strong> tab</li>
+                    <li>Choose the data type you want to import</li>
+                    <li>Upload your CSV file with the appropriate format</li>
+                </ol>
+                
+                <h5>Importing Complete Timetable</h5>
+                <ol>
+                    <li>Go to the <strong>Timetable</strong> page from the navigation menu</li>
+                    <li>Click the <strong>Import Timetable</strong> button</li>
+                    <li>Upload a timetable CSV file that contains scheduling information</li>
+                    <li>The system will automatically assign time slots, classrooms and instructors based on the file</li>
+                    <li>After importing, you can click <strong>Generate Timetable</strong> to resolve any scheduling conflicts</li>
+                </ol>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> <strong>Pro Tip:</strong> You can export a timetable, make changes in a spreadsheet application, and then import it back to apply those changes.
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4" id="troubleshooting">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Troubleshooting</h4>
+            </div>
+            <div class="card-body">
+                <h5>Common Issues and Solutions</h5>
+                
+                <div class="accordion mb-3" id="troubleshootingAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                                The scheduler fails to generate a complete timetable
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                            <div class="accordion-body">
+                                <p>This usually happens when there are too many constraints making it impossible to find a solution. Try:</p>
+                                <ul>
+                                    <li>View the conflicts page to identify the bottlenecks</li>
+                                    <li>Add more time slots to provide more scheduling options</li>
+                                    <li>Reduce student enrollments in high-conflict courses</li>
+                                    <li>Try manual assignment for the most constrained courses first</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                                Cannot delete an instructor/classroom/time slot
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                            <div class="accordion-body">
+                                <p>You cannot delete items that are still in use. Before deleting:</p>
+                                <ul>
+                                    <li>For instructors: reassign or remove their courses</li>
+                                    <li>For classrooms: reassign courses scheduled in them</li>
+                                    <li>For time slots: reassign courses using them</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                                Course material upload fails
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                            <div class="accordion-body">
+                                <p>If you're having issues uploading course materials:</p>
+                                <ul>
+                                    <li>Ensure the file is in PDF format</li>
+                                    <li>Check that the file size is not too large (max 10MB)</li>
+                                    <li>Use a simple filename without special characters</li>
+                                    <li>Make sure you've completed all required fields in the form</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i> If you encounter persistent issues or need to reset the system, please contact the system administrator.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
